@@ -19,6 +19,7 @@ class SendMessage implements ShouldQueue
     }
 
     public function handle(): void {
+        $this->message->user;
         GotMessage::dispatch($this->message->toArray());
     }
 }

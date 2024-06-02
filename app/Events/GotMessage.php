@@ -4,6 +4,7 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -18,10 +19,8 @@ class GotMessage implements ShouldBroadcast
     }
 
     public function broadcastOn(): array {
-        // $this->message is available here
         return [
-            new PrivateChannel("channel-for-everyone"),
-            new Channel("channel-for-everyone"),
+            new PresenceChannel("channel-for-everyone"),
         ];
     }
 }

@@ -1,68 +1,39 @@
-import { Loader2Icon, SendIcon } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { FormEvent, FormEventHandler, useEffect, useState } from "react";
-import { useForm } from "@inertiajs/react";
-import { Message } from "@/types";
+import { useEffect, useRef, useState } from "react";
+import { Message, MessageWithUser } from "@/types";
 import { ScrollArea } from "./ui/scroll-area";
+import { useToast } from "./ui/use-toast";
+import { useRoom } from "@/hooks/use-room";
+import { ChatMessage } from "./chat-message";
 
-const webSocketChannel = `channel-for-everyone`;
+export function ChatMessages({ initialMessages, userId }: { initialMessages: MessageWithUser[]; userId: number }) {
+    const { toast } = useToast();
+    const { room, on } = useRoom({
+        room: "channel-for-everyone",
+        onJoined: () => toast({ title: "Entrou na sala" }),
+        onJoin: (user) => toast({ title: `${user.name}`, description: "Entrou na sala", variant: "success" }),
+        onLeave: (user) => toast({ title: `${user.name}`, description: "Saiu da sala", variant: "destructive" }),
+    });
 
-export function ChatMessages({ initialMessages }: { initialMessages: Message[] }) {
     const [messages, setMessages] = useState(initialMessages);
-
-    const connectWebSocket = () => {
-        console.log("Conectando ao WebSocket...");
-
-        window.Echo.join(webSocketChannel)
-            .here((users) => {
-                // ...
-                console.log("here", users);
-            })
-            .joining((user) => {
-                console.log("joining", user);
-            })
-            .leaving((user) => {
-                console.log("leaving", user);
-            })
-            .error((error) => {
-                console.error("error", error);
-            })
-            .listen("", (e: { message: Message }) => {
-                console.log("Evento recebido:", e);
-                setMessages((prevMessages) => [...prevMessages, e.message]);
-            })
-            .listen("got-message", (e: { message: Message }) => {
-                console.log("Evento recebido:", e);
-                setMessages((prevMessages) => [...prevMessages, e.message]);
-            })
-            .listen("GotMessage", (e: { message: Message }) => {
-                console.log("Evento recebido:", e);
-                setMessages((prevMessages) => [...prevMessages, e.message]);
-            })
-            .listen("App\\Events\\GotMessage", (e: { message: Message }) => {
-                console.log("Evento recebido:", e);
-                setMessages((prevMessages) => [...prevMessages, e.message]);
-            })
-            .listen(".GotMessage", (e: { message: Message }) => {
-                console.log("Evento recebido:", e);
-                setMessages((prevMessages) => [...prevMessages, e.message]);
-            });
-    };
+    const scroll = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        connectWebSocket();
+        if (scroll.current) {
+            scroll.current.scrollIntoView({ behavior: "smooth", block: "end" });
+        }
+    }, [messages.length, scroll.current]);
 
-        return () => {
-            window.Echo.leave(webSocketChannel);
-        };
-    }, []);
+    useEffect(() => {
+        on("GotMessage", ({ message }) => {
+            setMessages((prevMessages) => [...prevMessages, message]);
+        });
+    }, [room]);
 
     return (
-        <ScrollArea className="h-full max-h-full">
-            <div className="w-full h-full gap-4 space-y-8">
+        <ScrollArea className="h-full max-h-full max-w-full">
+            <div className=" h-full gap-4 space-y-8 pr-4 max-w-full " ref={scroll}>
                 {messages.map((message) => (
-                    <div key={message.id}>{message.content}</div>
+                    <ChatMessage message={message} isUser={message.user_id === userId} />
                 ))}
             </div>
         </ScrollArea>

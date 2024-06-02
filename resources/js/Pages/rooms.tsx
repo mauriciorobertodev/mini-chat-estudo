@@ -1,5 +1,5 @@
 import { Link, Head, router } from "@inertiajs/react";
-import { Message, PageProps } from "@/types";
+import { Message, MessageWithUser, PageProps } from "@/types";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { ToggleTheme } from "@/components/toggle-theme";
 import { User } from "@/types";
@@ -9,9 +9,8 @@ import { LogOutIcon } from "lucide-react";
 import { ChatForm } from "@/components/chat-form";
 import { ChatMessages } from "@/components/chat-messages";
 
-export default function Rooms({ auth, messages }: PageProps<{ messages: Message[] }>) {
+export default function Rooms({ auth, messages }: PageProps<{ messages: MessageWithUser[] }>) {
     function logout() {
-        console.log("logou");
         router.post(route("logout"));
     }
 
@@ -40,8 +39,8 @@ export default function Rooms({ auth, messages }: PageProps<{ messages: Message[
                         <div>
                             <div className="w-32 h-10 bg-blue-500"></div>
                         </div>
-                        <div className="h-full grid grid-rows-[1fr_min-content] overflow-y-auto gap-4 px-4 pb-4">
-                            <ChatMessages initialMessages={messages} />
+                        <div className="h-full  w-full grid grid-rows-[1fr_min-content] overflow-y-auto gap-4 px-4 pb-4 max-w-full">
+                            <ChatMessages initialMessages={messages} userId={auth.user.id} />
                             <ChatForm />
                         </div>
                     </div>
